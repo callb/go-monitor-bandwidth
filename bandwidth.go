@@ -27,13 +27,9 @@ func initBandwidthMonitoring() {
 		window := ui.NewWindow("Network Stats", 200, 200, false)
 
 		for _, info := range networkInfoList {
-			interfaceText := "Interface: " + info.interfaceName
-			receivedText := "Received: " + strconv.Itoa(info.receivedData["bytes"])
-			transmittedText := "Transmitted: " + strconv.Itoa(info.transmittedData["bytes"]) + "\n"
-
-			interfaceLabel := ui.NewLabel(interfaceText)
-			receivedLabel := ui.NewLabel(receivedText)
-			transmittedLabel := ui.NewLabel(transmittedText)
+			interfaceLabel := ui.NewLabel("Interface: " + info.interfaceName)
+			receivedLabel := ui.NewLabel("")
+			transmittedLabel := ui.NewLabel("")
 
 			box.Append(interfaceLabel, false)
 			box.Append(receivedLabel, false)
@@ -56,20 +52,25 @@ func initBandwidthMonitoring() {
 
 // Starts process of continually updating stats for a particular interface
 func startUpdateLabelsProcessForInterface(interfaceName string, receivedLabel *ui.Label, transmittedLabel *ui.Label) {
+	initialInfo := getBandwidthInfoForInterface(interfaceName)
+	previousReceivedBytes := initialInfo.receivedData["bytes"]
+	previousTransmittedBytes := initialInfo.transmittedData["bytes"]
 	for {
-		networkInfoList := parseNetworkDataFromFile(readNetworkFile())
-		for _, info := range networkInfoList {
-			if info.interfaceName == interfaceName {
-				receivedText := "Received: " + strconv.Itoa(info.receivedData["bytes"])
-				transmittedText := "Transmitted: " + strconv.Itoa(info.transmittedData["bytes"]) + "\n"
-				ui.QueueMain(func() {
-					receivedLabel.SetText(receivedText)
-					transmittedLabel.SetText(transmittedText)
-				})
-				break
-			}
-		}
-		time.Sleep(time.Second * 5)
+		info := getBandwidthInfoForInterface(interfaceName)
+
+		receivedDeltaValue := info.receivedData["bytes"] - previousReceivedBytes
+		transmittedDeltaValue := info.transmittedData["bytes"] - previousTransmittedBytes
+
+		receivedText := "Receiving: " + strconv.Itoa(receivedDeltaValue) + " bytes/sec"
+		transmittedText := "Transmitting: " + strconv.Itoa(transmittedDeltaValue) + " bytes/sec\n"
+		ui.QueueMain(func() {
+			receivedLabel.SetText(receivedText)
+			transmittedLabel.SetText(transmittedText)
+		})
+
+		previousReceivedBytes = info.receivedData["bytes"]
+		previousTransmittedBytes = info.transmittedData["bytes"]
+		time.Sleep(time.Second)
 	}
 }
 
@@ -152,6 +153,16 @@ func getBandwidthInfoFromRow(line string, receiveCols []string, transmitCols []s
 	return bandwidthInfo
 }
 
+// Gets a particular interface from the list of bandwidth info
+func getBandwidthInfoForInterface(interfaceName string) bandwidthInfo {
+	networkInfoList := parseNetworkDataFromFile(readNetworkFile())
+	for _, info := range networkInfoList {
+		if info.interfaceName == interfaceName {
+			return info
+		}
+	}
+	return bandwidthInfo{}
+}
 
 // Prints the network info read from the file to the console
 func printNetworkInfo(networkInfo []bandwidthInfo) {
