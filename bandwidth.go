@@ -1,4 +1,4 @@
-package bandwidth_monitor
+package main
 
 import (
 	"io/ioutil"
