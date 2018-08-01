@@ -4,7 +4,6 @@ import (
 	"io/ioutil"
 	"strings"
 	"strconv"
-	"fmt"
 	"github.com/andlabs/ui"
 	"time"
 )
@@ -162,17 +161,6 @@ func getBandwidthInfoForInterface(interfaceName string) bandwidthInfo {
 		}
 	}
 	return bandwidthInfo{}
-}
-
-// Prints the network info read from the file to the console
-func printNetworkInfo(networkInfo []bandwidthInfo) {
-	fmt.Println("------------------------------------")
-	for _, bandwidth := range networkInfo {
-		fmt.Println("Interface:", bandwidth.interfaceName)
-		fmt.Println("Received:", bandwidth.receivedData["bytes"])
-		fmt.Println("Sent:", bandwidth.transmittedData["bytes"])
-		fmt.Println("")
-	}
 }
 
 // Check for an error, panic if one has occurred
