@@ -4,8 +4,8 @@ import (
 	"strconv"
 	"github.com/andlabs/ui"
 	"time"
-	"./network"
 	"./utils"
+	"./bandwidth"
 )
 
 func main() {
@@ -13,7 +13,7 @@ func main() {
 }
 
 func initBandwidthMonitoring() {
-	networkInfoList := network.GetBandwidthUsageData()
+	networkInfoList := bandwidth.GetBandwidthUsageData()
 
 	err := ui.Main(func() {
 		box := ui.NewVerticalBox()
@@ -45,11 +45,15 @@ func initBandwidthMonitoring() {
 
 // Starts process of continually updating stats for a particular interface
 func startUpdateLabelsProcessForInterface(interfaceName string, receivedLabel *ui.Label, transmittedLabel *ui.Label) {
-	initialInfo := network.GetBandwidthInfoForInterface(interfaceName)
+	initialInfo := bandwidth.GetBandwidthInfoForInterface(interfaceName)
 	previousReceivedBytes := initialInfo.ReceivedData["bytes"]
 	previousTransmittedBytes := initialInfo.TransmittedData["bytes"]
+
+	var batchDataToUpload []bandwidth.BandwidthInfo
+	batchDataToUpload = bandwidth.AddBandwidthDataToUpload(batchDataToUpload, initialInfo)
+
 	for {
-		info := network.GetBandwidthInfoForInterface(interfaceName)
+		info := bandwidth.GetBandwidthInfoForInterface(interfaceName)
 
 		receivedDeltaValue := info.ReceivedData["bytes"] - previousReceivedBytes
 		transmittedDeltaValue := info.TransmittedData["bytes"] - previousTransmittedBytes
@@ -60,6 +64,8 @@ func startUpdateLabelsProcessForInterface(interfaceName string, receivedLabel *u
 			receivedLabel.SetText(receivedText)
 			transmittedLabel.SetText(transmittedText)
 		})
+
+		batchDataToUpload = bandwidth.AddBandwidthDataToUpload(batchDataToUpload, info)
 
 		previousReceivedBytes = info.ReceivedData["bytes"]
 		previousTransmittedBytes = info.TransmittedData["bytes"]

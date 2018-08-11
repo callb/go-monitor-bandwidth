@@ -1,12 +1,16 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
+	"fmt"
+)
 
 func main() {
-	http.HandleFunc("/save", saveBatchData)
+	http.HandleFunc("/bandwidth/upload", saveData)
+	http.ListenAndServe(":8080", nil)
 }
 
 
-func saveBatchData(w http.ResponseWriter, r *http.Request) {
-
+func saveData(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Data Received!")
 }

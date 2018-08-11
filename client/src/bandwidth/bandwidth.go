@@ -1,16 +1,18 @@
-package network
+package bandwidth
 
 import (
 	"io/ioutil"
 	"strings"
 	"strconv"
 	"../utils"
+	"time"
 )
 
 type BandwidthInfo struct {
 	InterfaceName string
 	ReceivedData map[string] int
 	TransmittedData map[string] int
+	TimeRecorded time.Time
 }
 
 // Read in the network information file
